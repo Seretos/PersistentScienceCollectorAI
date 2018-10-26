@@ -1,4 +1,4 @@
-﻿language: csharp
+language: csharp
 solution: PersistentScienceCollectorAI.sln
 env:
   global:
@@ -12,6 +12,18 @@ script:
 - mkdir -p ../../KSP_x64_Data/Managed/
 - wget https://img.spaceball.cf/KSP-$KSP_VERSION.7z
 - 7za x KSP-$KSP_VERSION.7z -o../../KSP_x64_Data/Managed/ -p$ZIP_PASSWORD
+- rm -rf KSP-$KSP_VERSION.7z
 - msbuild /p:Configuration=Release /p:PostBuildEvent= PersistentScienceCollectorAI.sln
-- ls -lisa
-- ls -lisa Plugin/
+- mkdir -p GameData/PersistentScienceCollectorAI/Plugin/
+- mv Plugin/PersistentScienceCollectorAI.dll GameData/PersistentScienceCollectorAI/Plugin/
+- zip -r PersistentScienceCollectorAI-$TRAVIS_BRANCH.zip GameData/PersistentScienceCollectorAI/
+
+deploy:
+  provider: releases
+  api_key:
+    secure: x78VJdrSSWWzZQwklbW1OOdwrFXtG8xwWWfc9UOnf5kgQYgXHWGl+hLrYezHdINRolXk9LmvNy2MYHBqlpqbkKv5Sl7sRxA8rvqUyyLOUC9mbyeuc9LvBGWfSKZunt0Ve9yeWirFsFdGyT3Ex+xFAc1vCbkwUp2O5cxFOWzJNtq9EYylYwq3hEd7tlo76cUZWOXb7oTMVQW81k2Fd/GJlADiUrdBCZnuHCBTolIa30zZnR/RWGmTOnnR1rD4eL2BU6zI1UM/egE6j7MHB1Wnw5wF9iFDdcPchFbUvugyX2xtjsgazUWRmuG43We2hYdS735gw7rAdPsIEmm422IIWy/ZOGr9SvxUHhnp0T2+VZkn2WSYlR8ABQ9TIpPeQYf6W56LflpFBapjNVvmhMQLOBeBwuufrFaq8QFkg1pbFxtXE/8Hf9Ip+Pl8qdbOoWU8c1kgcuV1bIDITQK+Q110soPVujJQ/rak2tFpVzZ4lQNFKO7Rl2X6O4os3QdyVjS9oHM4Aoneh/ywk5VL1uprCEZzFZp39vSwNzVochyuMxQeEBFPxWntIYkdImS234sjZ4kCSOubKHZBJyC3FYrWslvDp5O0FgAHvMruFUaX6jPjelR3UbAO6rhh5aeeLCRBuUUSGcBRKqeNlFPAyDHzLYIkvAZJV0jJ1c33zsj9Glk=
+  file: PersistentScienceCollectorAI-$TRAVIS_BRANCH.zip
+  skip_cleanup: true
+  on:
+	tags: true
+    repo: Seretos/PersistentScienceCollectorAI
