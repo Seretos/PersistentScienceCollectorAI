@@ -25,5 +25,5 @@ deploy:
   file: PersistentScienceCollectorAI-$TRAVIS_BRANCH.zip
   skip_cleanup: true
   on:
-	tags: true
+    tags: true
     repo: Seretos/PersistentScienceCollectorAI
