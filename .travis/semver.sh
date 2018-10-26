@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env sh
+﻿#!/bin/sh
 
 function semverParseInto() {
     local RE='[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)'
