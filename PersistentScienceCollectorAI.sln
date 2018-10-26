@@ -3,7 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2048
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistentScienceCollectorAI", "PersistentScienceCollectorAI.csproj", "{A52A02D8-191C-49E6-B19A-EC9B961A9623}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A52A02D8-191C-49E6-B19A-EC9B961A9623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A52A02D8-191C-49E6-B19A-EC9B961A9623}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A52A02D8-191C-49E6-B19A-EC9B961A9623}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A52A02D8-191C-49E6-B19A-EC9B961A9623}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

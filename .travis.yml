@@ -12,5 +12,6 @@ script:
 - mkdir -p ../../KSP_x64_Data/Managed/
 - wget https://img.spaceball.cf/KSP-$KSP_VERSION.7z
 - 7za x KSP-$KSP_VERSION.7z -o../../KSP_x64_Data/Managed/ -p$ZIP_PASSWORD
-- msbuild /p:Configuration=Release /p:BuildProjectReferences=false /p:PostBuildEvent= PersistentScienceCollectorAI.sln
+- msbuild /p:Configuration=Release /p:PostBuildEvent= PersistentScienceCollectorAI.sln
+- ls -lisa
 - ls -lisa Plugin/
