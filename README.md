@@ -1,0 +1,4 @@
+﻿PersistentScienceCollectorAI
+============================
+
+work in progress!!
