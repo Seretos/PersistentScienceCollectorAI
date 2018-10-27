@@ -65,7 +65,6 @@
     <None Include=".travis\travisVersion.sh" />
     <None Include="Localization\en-us.cfg" />
     <None Include="Parts.cfg" />
-    <None Include="PersistentScienceCollectorAI.version" />
     <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

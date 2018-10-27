@@ -6,12 +6,10 @@ using UnityEngine;
 
 namespace PersistentScienceCollectorAI
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
-    public class Class1 : MonoBehaviour
+    class ScienceAIContainerModule : PartModule
     {
-        public void Start()
+        public override void OnStart(StartState state)
         {
-            Debug.Log("Hallo");
         }
     }
 }
