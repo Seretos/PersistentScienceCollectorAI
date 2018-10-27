@@ -18,9 +18,7 @@ script:
 - mv Plugin/PersistentScienceCollectorAI.dll GameData/PersistentScienceCollectorAI/Plugin/
 - mv Parts.cfg GameData/PersistentScienceCollectorAI
 - mv Localization/ GameData/PersistentScienceCollectorAI/
-- sh .travis/travisVersion.sh
-- ls -lisa
-- ls -lisa .travis/
+- sh travisVersion.sh
 - tail PersistentScienceCollectorAI.version
 - mv PersistentScienceCollectorAI.version GameData/PersistentScienceCollectorAI/
 - zip -r PersistentScienceCollectorAI-$TRAVIS_BRANCH.zip GameData/PersistentScienceCollectorAI/
