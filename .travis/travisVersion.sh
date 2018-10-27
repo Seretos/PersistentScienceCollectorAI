@@ -35,3 +35,33 @@ semverParseInto "$TRAVIS_BRANCH" TRAVIS_MAJOR TRAVIS_MINOR TRAVIS_PATCH TRAVIS_F
 TRAVIS_RELEASE_VERSION="$TRAVIS_MAJOR.$TRAVIS_MINOR.$TRAVIS_PATCH$TRAVIS_FEATURE"
 
 echo $TRAVIS_RELEASE_VERSION
+
+echo <<EOF{
+    "NAME": "PersistentScienceCollectorAI", 
+    "GITHUB": {
+        "REPOSITORY": "PersistentScienceCollectorAI", 
+        "USERNAME": "Seretos"
+    }, 
+    "KSP_VERSION": {
+        "MAJOR": 1, 
+        "MINOR": 5, 
+        "PATCH": 1
+    }, 
+    "KSP_VERSION_MAX": {
+        "MAJOR": 1, 
+        "MINOR": 5, 
+        "PATCH": 99
+    }, 
+    "KSP_VERSION_MIN": {
+        "MAJOR": 1, 
+        "MINOR": 5, 
+        "PATCH": 0
+    }, 
+    "VERSION": {
+        "BUILD": 0, 
+        "MAJOR": $TRAVIS_MAJOR, 
+        "MINOR": $TRAVIS_MINOR, 
+        "PATCH": $TRAVIS_PATCH
+    }
+}
+EOF >> PersistentScienceCollectorAI.version
