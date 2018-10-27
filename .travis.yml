@@ -21,6 +21,7 @@ script:
 - sh travisVersion.sh
 - tail PersistentScienceCollectorAI.version
 - mv PersistentScienceCollectorAI.version GameData/PersistentScienceCollectorAI/
+- mv PersistentScienceCollectorAI.netkan GameData/PersistentScienceCollectorAI/
 - zip -r PersistentScienceCollectorAI-$TRAVIS_BRANCH.zip GameData/PersistentScienceCollectorAI/
 
 deploy:
