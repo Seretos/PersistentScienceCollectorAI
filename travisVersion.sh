@@ -38,4 +38,4 @@ echo $TRAVIS_RELEASE_VERSION
 
 sed -i -e "s/\"MAJOR\": 0/\"MAJOR\": $TRAVIS_MAJOR/g" PersistentScienceCollectorAI.version
 sed -i -e "s/\"MINOR\": 0/\"MINOR\": $TRAVIS_MINOR/g" PersistentScienceCollectorAI.version
-sed -i -e "s/\"PATCH\": 0/\"PATCH\": $TRAVIS_PATCH/g" PersistentScienceCollectorAI.version
+sed -i -e "s/\"PATCH\": 1/\"PATCH\": $TRAVIS_PATCH/g" PersistentScienceCollectorAI.version

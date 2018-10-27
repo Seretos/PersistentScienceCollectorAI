@@ -1,5 +1,7 @@
 ﻿{
-    "NAME": "PersistentScienceCollectorAI", 
+    "NAME": "Persistent Science Collector AI", 
+	"URL": "https://raw.githubusercontent.com/Seretos/PersistentScienceCollectorAI/master/PersistentScienceCollectorAI.version",
+	"DOWNLOAD": "https://github.com/Seretos/PersistentScienceCollectorAI/releases",
     "GITHUB": {
         "REPOSITORY": "PersistentScienceCollectorAI", 
         "USERNAME": "Seretos"
@@ -23,6 +25,6 @@
         "BUILD": 0, 
         "MAJOR": 0, 
         "MINOR": 0, 
-        "PATCH": 2
+        "PATCH": 1
     }
 }

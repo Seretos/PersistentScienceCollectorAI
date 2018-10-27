@@ -62,7 +62,8 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include=".travis.yml" />
-    <None Include=".travis\travisVersion.sh" />
+    <None Include="PersistentScienceCollectorAI.version" />
+    <None Include="travisVersion.sh" />
     <None Include="Localization\en-us.cfg" />
     <None Include="Parts.cfg" />
     <None Include="README.md" />
