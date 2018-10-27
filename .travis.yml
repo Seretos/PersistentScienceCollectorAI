@@ -17,6 +17,7 @@ script:
 - mkdir -p GameData/PersistentScienceCollectorAI/Plugin/
 - mv Plugin/PersistentScienceCollectorAI.dll GameData/PersistentScienceCollectorAI/Plugin/
 - sh .travis/travisVersion.sh
+- bash .travis/travisVersion.sh
 - zip -r PersistentScienceCollectorAI-$TRAVIS_RELEASE_VERSION.zip GameData/PersistentScienceCollectorAI/
 
 deploy:

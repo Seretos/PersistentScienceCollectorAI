@@ -1,19 +1,34 @@
-﻿TRAVIS_MAJOR=0
+﻿#!/usr/bin/env sh
+
+red='\033[0;31m'
+nc='\033[0m' # No Color
+
+semverParseInto() {
+    val="$1";
+    if [ "X${val}X" = "XX" ]; then echo "${red}WARN${nc} :: '$val' is not a valid semver"; val="0.0.0"; fi;
+    # shellcheck disable=SC2039
+    # local RE='[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)[-]\{0,1\}\([0-9A-Za-z.-]*\)'
+    local RE="[^0-9]*\([0-9]\+\)\(\.\([0-9]\+\)\|\)\(\.\([0-9]\+\)\|\)[-]\{0,1\}\([0-9A-Za-z.-]*\)"
+
+    #MAJOR
+    eval "$2"="$(echo ${val} | sed -n -e "s#$RE#\1#p")"
+
+    #MINOR
+    eval "$3"="$(echo ${val} | sed -n -e "s#$RE#\3#p")"
+    eval "$3=\${$3:-0}"
+
+    #PATCH
+    eval "$4"="$(echo ${val} | sed -n -e "s#$RE#\5#p")"
+    eval "$4=\${$4:-0}"
+
+    #SPECIAL
+    eval "$5"="$(echo ${val} | sed -n -e "s#$RE#\6#p")"
+}
+
+TRAVIS_MAJOR=0
 TRAVIS_MINOR=0
 TRAVIS_PATCH=0
 TRAVIS_FEATURE=0
-
-function semverParseInto() {
-    local RE='[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)'
-    #MAJOR
-    eval $2=`echo $1 | sed -e "s#$RE#\1#"`
-    #MINOR
-    eval $3=`echo $1 | sed -e "s#$RE#\2#"`
-    #MINOR
-    eval $4=`echo $1 | sed -e "s#$RE#\3#"`
-    #SPECIAL
-    eval $5=`echo $1 | sed -e "s#$RE#\4#"`
-}
 
 semverParseInto "$TRAVIS_BRANCH" TRAVIS_MAJOR TRAVIS_MINOR TRAVIS_PATCH TRAVIS_FEATURE
 
