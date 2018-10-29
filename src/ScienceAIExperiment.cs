@@ -24,6 +24,6 @@ namespace PersistentScienceCollectorAI
         [Persistent]
         public float xmitDataScalar;
 
-        protected PartModule experiment = null;
+        public ModuleScienceExperiment moduleRef = null;
     }
 }

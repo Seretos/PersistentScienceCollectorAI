@@ -18,6 +18,7 @@ script:
 - mv Plugin/PersistentScienceCollectorAI.dll GameData/PersistentScienceCollectorAI/Plugin/
 - mv Parts.cfg GameData/PersistentScienceCollectorAI
 - mv Localization/ GameData/PersistentScienceCollectorAI/
+- mv icon.png GameData/PersistentScienceCollectorAI/
 - sh travisVersion.sh
 - tail PersistentScienceCollectorAI.version
 - mv PersistentScienceCollectorAI.version GameData/PersistentScienceCollectorAI/

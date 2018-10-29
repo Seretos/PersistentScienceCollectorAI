@@ -1,6 +1,6 @@
 ﻿{
     "spec_version" : 1,
-    "identifier"   : "PersistentScienceCollectorAI.netkan",
+    "identifier"   : "PersistentScienceCollectorAI",
     "$kref"        : "#/ckan/github/seretos/PersistentScienceCollectorAI",
     "license"      : "CC-BY-4.0",
     "$vref"        : "#/ckan/ksp-avc",
