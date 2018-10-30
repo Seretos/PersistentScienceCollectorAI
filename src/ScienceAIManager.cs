@@ -167,6 +167,8 @@ namespace PersistentScienceCollectorAI
         {
             ScienceAIVesselModule source = FlightGlobals.Vessels.Find(v => v.persistentId == data0).GetComponent<ScienceAIVesselModule>();
             ScienceAIVesselModule target = FlightGlobals.Vessels.Find(v => v.persistentId == data1).GetComponent<ScienceAIVesselModule>();
+            source.active = false;
+            target.active = false;
             source.SaveToVessel();
             target.SaveToVessel();
         }

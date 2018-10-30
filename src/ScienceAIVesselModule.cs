@@ -91,25 +91,32 @@ namespace PersistentScienceCollectorAI
         public void SaveToVessel()
         {
             List<ScienceAIContainerModule> aiMods = vessel.FindPartModulesImplementing<ScienceAIContainerModule>();
+            List<ScienceAIContainerModule> activeAiMods = aiMods.FindAll(m => m.IsAutoCollect == true);
+            if (activeAiMods.Count() > 1)
+            {
+                foreach(ScienceAIContainerModule mod in activeAiMods)
+                {
+                    if(mod != activeAiMods.First())
+                    {
+                        mod.IsAutoCollect = false;
+                    }
+                }
+            }
             foreach (ScienceAIContainerModule aiMod in aiMods)
             {
-                if (active == true && aiMods.FindAll(m => m.IsAutoCollect == true).Count() > 1 && aiMod == aiMods.First())
+                if (activeAiMods.Count() == 0)
                 {
-                    aiMod.IsAutoCollect = true;
-                    aiMod.isEnabled = true;
-                    aiMod.part.FindModuleImplementing<ModuleScienceContainer>().isEnabled = true;
-                }
-                else if(active == true && aiMod == aiMods.Find(m => m.IsAutoCollect == true))
-                {
-                    aiMod.IsAutoCollect = true;
+                    if(active && aiMod == aiMods.First())
+                    {
+                        aiMod.IsAutoCollect = true;
+                    }
                     aiMod.isEnabled = true;
                     aiMod.part.FindModuleImplementing<ModuleScienceContainer>().isEnabled = true;
                 }
                 else
                 {
-                    aiMod.IsAutoCollect = false;
-                    aiMod.isEnabled = !active;
-                    aiMod.part.FindModuleImplementing<ModuleScienceContainer>().isEnabled = !active;
+                    aiMod.isEnabled = (aiMod == activeAiMods.First());
+                    aiMod.part.FindModuleImplementing<ModuleScienceContainer>().isEnabled = aiMod.isEnabled;
                 }
             }
 

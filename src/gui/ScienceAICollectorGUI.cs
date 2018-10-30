@@ -65,20 +65,34 @@ namespace PersistentScienceCollectorAI.gui
 
         private void DrawSettingsGUI(int windowID)
         {
-            GUILayout.BeginVertical();
+            GUILayout.BeginVertical(GUILayout.Width(800), GUILayout.ExpandHeight(true));
             foreach(Vessel v in FlightGlobals.Vessels)
             {
                 ScienceAIVesselModule mod = v.GetComponent<ScienceAIVesselModule>();
                 if (mod.active)
                 {
-                    //GUILayout.BeginArea(new Rect(0,0,800,1));
-                    GUILayout.Label("Vessel: " + v.GetDisplayName() + "(" + mod.biome + ")");
-                    foreach(ScienceAIExperiment experiment in mod.modules)
+                    int expCount = mod.data.Count();
+                    if (v.loaded)
+                    {
+                        expCount += mod.ScienceContainer.GetStoredDataCount();
+                    }
+                    GUILayout.Label("Vessel: " + v.GetDisplayName() + "(" + mod.biome + "," + mod.situation + "): " + expCount);
+                    if (v.loaded)
+                    {
+                        foreach (ScienceData data in mod.ScienceContainer.GetData())
+                        {
+                            GUILayout.Label("   " + data.title);
+                        }
+                    }
+                    foreach (ScienceAIData result in mod.data)
+                    {
+                        GUILayout.Label("   " + result.dataName);
+                    }
+                    /*foreach (ScienceAIExperiment experiment in mod.modules)
                     {
                         ScienceExperiment se = ResearchAndDevelopment.GetExperiment(experiment.experimentID);
                         GUILayout.Label(se.experimentTitle + " (" + experiment.inoperable + ")");
-                    }
-                    //GUILayout.EndArea();
+                    }*/
                 }
             }
             GUILayout.EndVertical();
