@@ -81,11 +81,32 @@ namespace PersistentScienceCollectorAI
 
             if (vessel.loaded)
             {
+                Debug.Log("OnStart " + vessel.name);
                 LoadFromVessel();
                 SaveToVessel();
                 biome = String.Empty;
                 situation = String.Empty;
             }
+        }
+
+        private void OnVesselsUndocking(Vessel data0, Vessel data1)
+        {
+            Debug.Log("OnVesselsUndocking " + data0.name + " " + data1.name);
+        }
+
+        private void OnUndock(EventReport data)
+        {
+            Debug.Log("OnUndock " + data.origin.vessel.name);
+        }
+
+        private void OnSameVesselUndock(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
+        {
+            Debug.Log("OnSameVesselUndock " + data.from.vessel.name);
+        }
+
+        private void OnPartUndock(Part data)
+        {
+            Debug.Log("OnPartUndock " + data.vessel.name);
         }
 
         public void SaveToVessel()

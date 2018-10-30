@@ -13,22 +13,61 @@ namespace PersistentScienceCollectorAI
         protected float LastACLevel = 0;
         public void Start()
         {
-            GameEvents.onDockingComplete.Remove(OnDockingComplete);
+            /*GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onVesselsUndocking.Remove(OnVesselIsUndocking);
             GameEvents.onPartUndock.Remove(OnPartUndock);
             GameEvents.onVesselDocking.Remove(OnVesselDocking);
-            GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
+            GameEvents.onVesselWasModified.Remove(OnVesselWasModified);*/
+            //GameEvents.onVesselStandardModification.Remove(OnVesselStandardModification);
+            GameEvents.onPartUndock.Remove(OnUndock);
+            GameEvents.onPartDeCouple.Remove(OnUndock);
+            GameEvents.onPartUndockComplete.Remove(OnUndockComplete);
+            GameEvents.onPartDeCoupleComplete.Remove(OnUndockComplete);
+            GameEvents.onVesselDocking.Remove(OnVesselDocking);
 
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            GameEvents.onDockingComplete.Add(OnDockingComplete);
+            /*GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onVesselsUndocking.Add(OnVesselIsUndocking);
             GameEvents.onPartUndock.Add(OnPartUndock);
             GameEvents.onVesselDocking.Add(OnVesselDocking);
-            GameEvents.onVesselWasModified.Add(OnVesselWasModified);
+            GameEvents.onVesselWasModified.Add(OnVesselWasModified);*/
+            //GameEvents.onVesselStandardModification.Add(OnVesselStandardModification);
+            GameEvents.onPartUndock.Add(OnUndock);
+            GameEvents.onPartDeCouple.Add(OnUndock);
+            GameEvents.onPartUndockComplete.Add(OnUndockComplete);
+            GameEvents.onPartDeCoupleComplete.Add(OnUndockComplete);
+            GameEvents.onVesselDocking.Add(OnVesselDocking);
 
             gui.ScienceAICollectorGUI.Instance.Init();
+        }
+
+        private void OnVesselDocking(uint data0, uint data1)
+        {
+            Vessel source = FlightGlobals.Vessels.Find(v => v.persistentId == data0);
+            Vessel target = FlightGlobals.Vessels.Find(v => v.persistentId == data1);
+            ScienceAIVesselModule sourceMod = source.GetComponent<ScienceAIVesselModule>();
+            ScienceAIVesselModule targetMod = target.GetComponent<ScienceAIVesselModule>();
+            sourceMod.active = false;
+            targetMod.active = false;
+            sourceMod.SaveToVessel();
+            targetMod.SaveToVessel();
+        }
+
+
+        private void OnUndockComplete(Part data)
+        {
+            ScienceAIVesselModule mod = data.vessel.GetComponent<ScienceAIVesselModule>();
+            mod.active = false;
+            mod.SaveToVessel();
+        }
+
+        private void OnUndock(Part data)
+        {
+            ScienceAIVesselModule mod = data.vessel.GetComponent<ScienceAIVesselModule>();
+            mod.active = false;
+            mod.SaveToVessel();
         }
 
         public void FixedUpdate()
@@ -154,7 +193,20 @@ namespace PersistentScienceCollectorAI
             }
         }
 
-        private void OnVesselWasModified(Vessel data)
+        /*private void OnVesselStandardModification(Vessel data)
+        {
+            if (this != null)
+            {
+                ScienceAIVesselModule mod = data.GetComponent<ScienceAIVesselModule>();
+                if (mod != null && mod.active)
+                {
+                    mod.active = false;
+                    mod.SaveToVessel();
+                }
+            }
+        }*/
+
+        /*private void OnVesselWasModified(Vessel data)
         {
             ScienceAIVesselModule mod = data.GetComponent<ScienceAIVesselModule>();
             mod.LoadFromVessel();
@@ -197,6 +249,6 @@ namespace PersistentScienceCollectorAI
 
             created.GetComponent<ScienceAIVesselModule>().LoadFromVessel();
             created.GetComponent<ScienceAIVesselModule>().SaveToVessel();
-        }
+        }*/
     }
 }
