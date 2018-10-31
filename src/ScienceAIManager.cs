@@ -13,7 +13,7 @@ namespace PersistentScienceCollectorAI
     {
         public void Start()
         {
-            GameEvents.onPartDeCouple.Remove(OnUndock);
+            GameEvents.onPartDeCouple.Remove(OnDecouple);
             GameEvents.onPartUndock.Remove(OnUndock);
             GameEvents.onPartDeCoupleComplete.Remove(OnUndockComplete);
             GameEvents.onPartUndockComplete.Remove(OnUndockComplete);
@@ -24,7 +24,7 @@ namespace PersistentScienceCollectorAI
                 return;
 
             // first time, the decouple method will called... then undock... why ever
-            GameEvents.onPartDeCouple.Add(OnUndock);
+            GameEvents.onPartDeCouple.Add(OnDecouple);
             GameEvents.onPartUndock.Add(OnUndock);
             GameEvents.onPartDeCoupleComplete.Add(OnUndockComplete);
             GameEvents.onPartUndockComplete.Add(OnUndockComplete);
@@ -84,6 +84,16 @@ namespace PersistentScienceCollectorAI
         private void OnUndock(Part data)
         {
             data.vessel.GetComponent<ScienceAIVesselModule>().Deactivate();
+        }
+
+        private void OnDecouple(Part data)
+        {
+            int scienceCount = data.FindChildParts<Part>().Where(p => p.FindModuleImplementing<ModuleScienceExperiment>() != null).Count();
+            int aiCount = data.FindChildParts<Part>().Where(p => p.FindModuleImplementing<ScienceAIContainerModule>() != null).Count();
+            if (scienceCount > 0 || aiCount > 0)
+            {
+                data.vessel.GetComponent<ScienceAIVesselModule>().Deactivate();
+            }
         }
 
         public void FixedUpdate()
