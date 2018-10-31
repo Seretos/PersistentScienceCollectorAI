@@ -4,16 +4,15 @@ env:
   - KSP_VERSION="1.5.1"
   - KSP_VERSION="1.4.5"
 
-before_install:
-- sudo apt-get update -qq
-- sudo apt-get install -qq p7zip-full bash openssh-client jq
-
 jobs:
   include:
     - stage: build
 	  env:
 	    - KSP_VERSION="1.5.1"
-      script:
+      before_install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq p7zip-full bash openssh-client jq
+	  script:
         - mkdir -p ../../KSP_x64_Data/Managed/
         - wget https://img.spaceball.cf/KSP-$KSP_VERSION.7z
         - 7za x KSP-$KSP_VERSION.7z -o../../KSP_x64_Data/Managed/ -p$ZIP_PASSWORD
