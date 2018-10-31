@@ -8,11 +8,6 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq p7zip-full bash openssh-client jq
 
-matrix:
-  include:
-    - env: KSP_VERSION="1.5.1"
-	- env: KSP_VERSION="1.4.5"
-
 script:
 - mkdir -p ../../KSP_x64_Data/Managed/
 - wget https://img.spaceball.cf/KSP-$KSP_VERSION.7z
