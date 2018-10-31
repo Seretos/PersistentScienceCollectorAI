@@ -11,246 +11,132 @@ namespace PersistentScienceCollectorAI
         [Persistent]
         public bool active = false;
         [Persistent]
-        public bool collectEmpty = false;
+        public List<ScienceAIData> results = new List<ScienceAIData>();
         [Persistent]
-        public bool collectReusableOnly = false;
+        public List<ScienceAIExperiment> experiments = new List<ScienceAIExperiment>();
         [Persistent]
-        public String biome = string.Empty;
+        public uint partID;
         [Persistent]
-        public String situation = string.Empty;
+        public bool collectEmpty;
         [Persistent]
-        public List<ScienceAIExperiment> modules = new List<ScienceAIExperiment>();
-        [Persistent]
-        public List<ScienceAIData> data = new List<ScienceAIData>();
+        public bool reusableOnly;
 
-        protected ModuleScienceContainer scienceContainer = null;
-        protected ScienceAIContainerModule AIModule = null;
-
-        public ModuleScienceContainer ScienceContainer
-        {
-            get
-            {
-                return scienceContainer;
-            }
-        }
-
-        public bool AddScienceResult(ScienceAIData scienceResult)
-        {
-            if (vessel.loaded)
-            {
-                ScienceData result = new ScienceData(scienceResult.amount, scienceResult.xmitValue, scienceResult.xmitBonus, scienceResult.id, scienceResult.dataName);
-                if (!scienceContainer.HasData(result))
-                {
-                    scienceContainer.AddData(result);
-                    return true;
-                }
-                return false;
-            }
-            data.Add(scienceResult);
-            return true;
-        }
-
-        private void AddScienceResultsToVessel()
-        {
-            foreach(ScienceAIData scienceResult in data)
-            {
-                ScienceData result = new ScienceData(scienceResult.amount, scienceResult.xmitValue, scienceResult.xmitBonus, scienceResult.id, scienceResult.dataName);
-                if (!scienceContainer.HasData(result))
-                {
-                    scienceContainer.AddData(result);
-                }
-            }
-            data.Clear();
-        }
+        private ModuleScienceContainer container = null;
 
         protected override void OnStart()
         {
-            if (HighLogic.LoadedSceneIsEditor)
+            if (vessel.loaded && active)
             {
-                return;
-            }
-
-            if (vessel.vesselType == VesselType.Unknown
-                || vessel.vesselType == VesselType.SpaceObject
-                || vessel.vesselType == VesselType.Flag
-                || vessel.vesselType == VesselType.EVA
-                || vessel.vesselType == VesselType.Debris)
-            {
-                return;
-            }
-
-            if (vessel.loaded)
-            {
-                Debug.Log("OnStart " + vessel.name);
-                LoadFromVessel();
-                SaveToVessel();
-                biome = String.Empty;
-                situation = String.Empty;
+                ScienceAIContainerModule mod = vessel.FindPartModulesImplementing<ScienceAIContainerModule>().Where(m => m.IsAutoCollect == true).First();
+                container = mod.part.FindModuleImplementing<ModuleScienceContainer>();
+                partID = mod.part.persistentId;
             }
         }
 
-        private void OnVesselsUndocking(Vessel data0, Vessel data1)
+        public void Activate()
         {
-            Debug.Log("OnVesselsUndocking " + data0.name + " " + data1.name);
-        }
-
-        private void OnUndock(EventReport data)
-        {
-            Debug.Log("OnUndock " + data.origin.vessel.name);
-        }
-
-        private void OnSameVesselUndock(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
-        {
-            Debug.Log("OnSameVesselUndock " + data.from.vessel.name);
-        }
-
-        private void OnPartUndock(Part data)
-        {
-            Debug.Log("OnPartUndock " + data.vessel.name);
-        }
-
-        public void SaveToVessel()
-        {
-            List<ScienceAIContainerModule> aiMods = vessel.FindPartModulesImplementing<ScienceAIContainerModule>();
-            List<ScienceAIContainerModule> activeAiMods = aiMods.FindAll(m => m.IsAutoCollect == true);
-            if (activeAiMods.Count() > 1)
+            active = true;
+            bool alreadyCollect = false;
+            foreach (ScienceAIContainerModule mod in vessel.FindPartModulesImplementing<ScienceAIContainerModule>())
             {
-                foreach(ScienceAIContainerModule mod in activeAiMods)
+                if (mod.IsAutoCollect && !alreadyCollect)
                 {
-                    if(mod != activeAiMods.First())
-                    {
-                        mod.IsAutoCollect = false;
-                    }
+                    alreadyCollect = true;
+                    container = mod.part.FindModuleImplementing<ModuleScienceContainer>();
+                    partID = mod.part.persistentId;
                 }
-            }
-            foreach (ScienceAIContainerModule aiMod in aiMods)
-            {
-                if (activeAiMods.Count() == 0)
+                else if (mod.IsAutoCollect && alreadyCollect)
                 {
-                    if(active && aiMod == aiMods.First())
-                    {
-                        aiMod.IsAutoCollect = true;
-                    }
-                    aiMod.isEnabled = true;
-                    aiMod.part.FindModuleImplementing<ModuleScienceContainer>().isEnabled = true;
+                    mod.IsAutoCollect = false;
+                    mod.isEnabled = false;
                 }
                 else
                 {
-                    aiMod.isEnabled = (aiMod == activeAiMods.First());
-                    aiMod.part.FindModuleImplementing<ModuleScienceContainer>().isEnabled = aiMod.isEnabled;
+                    mod.isEnabled = false;
                 }
             }
-
-            foreach (ScienceAIExperiment aiExperiment in modules)
-            {
-                if (aiExperiment.moduleRef != null && aiExperiment.inoperable)
-                {
-                    aiExperiment.moduleRef.SetInoperable();
-                    aiExperiment.moduleRef.Deployed = true;
-                }else if(aiExperiment.moduleRef != null)
-                {
-                    aiExperiment.moduleRef.Inoperable = false;
-                    aiExperiment.moduleRef.Deployed = false;
-                }
-            }
-            foreach (ModuleScienceExperiment experiment in vessel.FindPartModulesImplementing<ModuleScienceExperiment>())
-            {
-                //if(!experiment.Inoperable)
-                experiment.isEnabled = !active;
-                if (experiment.Inoperable)
-                {
-                    experiment.DumpData(null);
-                    //Debug.Log(experiment.experimentID);
-                }
-                else
-                {
-                    experiment.DumpData(null);
-                    experiment.ResetExperiment();
-                }
-            }
-
-            AddScienceResultsToVessel();
+            LoadScienceData();
+            LoadScienceExperiments();
+            SetScienceContainerStatus(false);
+            SetScienceModuleStatus(false);
         }
 
-        public void LoadFromVessel()
+        public void Deactivate()
         {
-            try
+            active = false;
+            foreach (ScienceAIContainerModule mod in vessel.FindPartModulesImplementing<ScienceAIContainerModule>())
             {
-                AIModule = vessel.FindPartModulesImplementing<ScienceAIContainerModule>().Where(m => m.IsAutoCollect == true).First();
-                active = false;
-                if (AIModule != null)
-                {
-                    active = true;
-                }
-            }catch(InvalidOperationException e)
-            {
-                AIModule = null;
-                scienceContainer = null;
-                active = false;
+                mod.IsAutoCollect = false;
+                mod.isEnabled = true;
             }
+            SetScienceContainerStatus(true);
+            SaveScienceData();
+            SaveScienceExperiments();
+            SetScienceModuleStatus(true);
+        }
 
-            modules.Clear();
-            if (active)
+        private void SetScienceContainerStatus(bool enable)
+        {
+            foreach (ModuleScienceContainer con in vessel.FindPartModulesImplementing<ModuleScienceContainer>())
             {
-                collectEmpty = AIModule.IsCollectEmpty;
-                collectReusableOnly = AIModule.IsReusableOnly;
-                scienceContainer = AIModule.part.FindModuleImplementing<ModuleScienceContainer>();
-                scienceContainer.CollectAllEvent();
-                bool hasScientist = Vessel.GetVesselCrew().FindAll(pcm => pcm.trait == "Scientist").Count() > 0;
-                foreach (ModuleScienceExperiment experiment in vessel.FindPartModulesImplementing<ModuleScienceExperiment>())
-                {
-                    
-                        ScienceAIExperiment module = new ScienceAIExperiment
-                        {
-                            partId = experiment.part.persistentId,
-                            experimentID = experiment.experimentID,
-                            enabled = experiment.enabled,
-                            inoperable = experiment.Inoperable,
-                            resettable = experiment.resettable,
-                            resettableOnEVA = experiment.resettableOnEVA,
-                            xmitDataScalar = experiment.xmitDataScalar,
-                            rerunnable = experiment.rerunnable,
-                            moduleRef = experiment
-                        };
-                        modules.Add(module);
-                }
+                con.isEnabled = enable;
+            }
+        }
 
-                if(Vessel.GetVesselCrew().Count() > 0)
-                {
-                    ScienceAIExperiment module = new ScienceAIExperiment
-                    {
-                        partId = 0,
-                        experimentID = "evaReport",
-                        enabled = true,
-                        inoperable = false,
-                        resettable = true,
-                        resettableOnEVA = true,
-                        xmitDataScalar = 1,
-                        rerunnable = true,
-                        moduleRef = null
-                    };
-                    modules.Add(module);
+        private void SetScienceModuleStatus(bool enable)
+        {
+            foreach(ModuleScienceExperiment exp in vessel.FindPartModulesImplementing<ModuleScienceExperiment>())
+            {
+                exp.isEnabled = enable;
+            }
+        }
 
-                    ScienceAIExperiment surfaceModule = new ScienceAIExperiment
-                    {
-                        partId = 0,
-                        experimentID = "surfaceSample",
-                        enabled = true,
-                        inoperable = false,
-                        resettable = true,
-                        resettableOnEVA = true,
-                        xmitDataScalar = 1,
-                        rerunnable = true,
-                        moduleRef = null
-                    };
-                    modules.Add(surfaceModule);
+        private void LoadScienceExperiments()
+        {
+            experiments.Clear();
+            foreach(ModuleScienceExperiment experiment in vessel.FindPartModulesImplementing<ModuleScienceExperiment>())
+            {
+                ScienceAIExperiment modExperiment = new ScienceAIExperiment(experiment);
+                experiments.Add(modExperiment);
+            }
+            experiments.Add(new ScienceAIExperiment("evaReport"));
+            experiments.Add(new ScienceAIExperiment("surfaceSample"));
+        }
+
+        private void SaveScienceExperiments()
+        {
+            foreach(ScienceAIExperiment experiment in experiments)
+            {
+                experiment.SaveExperiment(vessel);
+            }
+        }
+
+        private void LoadScienceData()
+        {
+            results.Clear();
+            foreach(ScienceData result in container.GetData())
+            {
+                results.Add(new ScienceAIData(result));
+            }
+        }
+
+        private void SaveScienceData()
+        {
+            foreach(ScienceAIData result in results)
+            {
+                ScienceData scienceResult = result.CreateScienceData();
+                if (!container.HasData(scienceResult))
+                {
+                    container.AddData(scienceResult);
                 }
             }
+            results.Clear();
         }
 
         protected override void OnLoad(ConfigNode node)
         {
-            ConfigNode.LoadObjectFromConfig(this, node.GetNode(GetType().FullName));
+            ConfigNode currentNode = node.GetNode(GetType().FullName);
+            ConfigNode.LoadObjectFromConfig(this, currentNode);
         }
 
         protected override void OnSave(ConfigNode node)

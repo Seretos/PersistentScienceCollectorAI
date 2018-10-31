@@ -52,12 +52,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\gui\ScienceAICollectorGUI.cs" />
+    <Compile Include="src\gui\ModWindow.cs" />
     <Compile Include="src\ScienceAIContainerModule.cs" />
     <Compile Include="src\ScienceAIData.cs" />
+    <Compile Include="src\ScienceAIExperiment.cs" />
     <Compile Include="src\ScienceAIManager.cs" />
     <Compile Include="src\ScienceAIVesselModule.cs" />
-    <Compile Include="src\ScienceAIExperiment.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.png" />

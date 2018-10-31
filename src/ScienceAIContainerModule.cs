@@ -18,8 +18,6 @@ namespace PersistentScienceCollectorAI
         [UI_Toggle(disabledText = "#SCIENCE_BOX_DISABLED", enabledText = "#SCIENCE_BOX_ENABLED")]
         public bool IsReusableOnly = true;
 
-        protected ScienceAIVesselModule vesselModule = null;
-        
         public override void OnStart(StartState state)
         {
             if (HighLogic.LoadedSceneIsEditor)
@@ -30,36 +28,30 @@ namespace PersistentScienceCollectorAI
             Fields[nameof(IsAutoCollect)].uiControlFlight.onFieldChanged = OnAutoCollectChanged;
             Fields[nameof(IsCollectEmpty)].uiControlFlight.onFieldChanged = OnAutoCollectPropertyChanged;
             Fields[nameof(IsReusableOnly)].uiControlFlight.onFieldChanged = OnAutoCollectPropertyChanged;
-            vesselModule = vessel.GetComponent<ScienceAIVesselModule>();
         }
 
         internal void OnAutoCollectPropertyChanged(BaseField field, System.Object obj)
         {
-            vesselModule.biome = String.Empty;
-            vesselModule.situation = String.Empty;
-            vesselModule.collectEmpty = IsCollectEmpty;
-            vesselModule.collectReusableOnly = IsReusableOnly;
-            //vesselModule.SaveToVessel();
-            //vesselModule.LoadFromVessel();
+            ScienceAIVesselModule mod = vessel.GetComponent<ScienceAIVesselModule>();
+            mod.collectEmpty = IsCollectEmpty;
+            mod.reusableOnly = IsReusableOnly;
         }
 
         internal void OnAutoCollectChanged(BaseField field, System.Object obj)
         {
-            vesselModule.active = IsAutoCollect;
-            vesselModule.biome = String.Empty;
-            vesselModule.situation = String.Empty;
+            ScienceAIVesselModule mod = vessel.GetComponent<ScienceAIVesselModule>();
+            ModuleScienceContainer container = part.FindModuleImplementing<ModuleScienceContainer>();
             if (IsAutoCollect)
             {
-                foreach (ScienceAIContainerModule mod in vessel.FindPartModulesImplementing<ScienceAIContainerModule>().Where(m => m.IsAutoCollect == true))
-                {
-                    if (mod != this)
-                    {
-                        mod.IsAutoCollect = false;
-                    }
-                }
-                vesselModule.LoadFromVessel();
+                container.CollectAllEvent();
+                mod.collectEmpty = IsCollectEmpty;
+                mod.reusableOnly = IsReusableOnly;
+                mod.Activate();
             }
-            vesselModule.SaveToVessel();
+            else
+            {
+                mod.Deactivate();
+            }
         }
     }
 }

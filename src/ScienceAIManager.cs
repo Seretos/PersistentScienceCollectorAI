@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using KSP.UI.Screens;
+using KSP.UI.Screens.SpaceCenter.MissionSummaryDialog;
 using UnityEngine;
 
 namespace PersistentScienceCollectorAI
@@ -9,246 +11,174 @@ namespace PersistentScienceCollectorAI
     [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     class ScienceAIManager : MonoBehaviour
     {
-        protected float LastRnDLevel = 0;
-        protected float LastACLevel = 0;
         public void Start()
         {
-            /*GameEvents.onDockingComplete.Remove(OnDockingComplete);
-            GameEvents.onVesselsUndocking.Remove(OnVesselIsUndocking);
-            GameEvents.onPartUndock.Remove(OnPartUndock);
-            GameEvents.onVesselDocking.Remove(OnVesselDocking);
-            GameEvents.onVesselWasModified.Remove(OnVesselWasModified);*/
-            //GameEvents.onVesselStandardModification.Remove(OnVesselStandardModification);
-            GameEvents.onPartUndock.Remove(OnUndock);
             GameEvents.onPartDeCouple.Remove(OnUndock);
-            GameEvents.onPartUndockComplete.Remove(OnUndockComplete);
+            GameEvents.onPartUndock.Remove(OnUndock);
             GameEvents.onPartDeCoupleComplete.Remove(OnUndockComplete);
+            GameEvents.onPartUndockComplete.Remove(OnUndockComplete);
+
             GameEvents.onVesselDocking.Remove(OnVesselDocking);
 
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            /*GameEvents.onDockingComplete.Add(OnDockingComplete);
-            GameEvents.onVesselsUndocking.Add(OnVesselIsUndocking);
-            GameEvents.onPartUndock.Add(OnPartUndock);
-            GameEvents.onVesselDocking.Add(OnVesselDocking);
-            GameEvents.onVesselWasModified.Add(OnVesselWasModified);*/
-            //GameEvents.onVesselStandardModification.Add(OnVesselStandardModification);
-            GameEvents.onPartUndock.Add(OnUndock);
+            // first time, the decouple method will called... then undock... why ever
             GameEvents.onPartDeCouple.Add(OnUndock);
-            GameEvents.onPartUndockComplete.Add(OnUndockComplete);
+            GameEvents.onPartUndock.Add(OnUndock);
             GameEvents.onPartDeCoupleComplete.Add(OnUndockComplete);
+            GameEvents.onPartUndockComplete.Add(OnUndockComplete);
+
             GameEvents.onVesselDocking.Add(OnVesselDocking);
+            
+            GameEvents.onVesselRecoveryProcessing.Add(OnVesselRecoveryProcessing);
 
-            gui.ScienceAICollectorGUI.Instance.Init();
+            ModWindow.Instance.Init();
         }
 
-        private void OnVesselDocking(uint data0, uint data1)
+        private void OnVesselRecoveryProcessing(ProtoVessel data0, MissionRecoveryDialog data1, float data2)
         {
-            Vessel source = FlightGlobals.Vessels.Find(v => v.persistentId == data0);
-            Vessel target = FlightGlobals.Vessels.Find(v => v.persistentId == data1);
-            ScienceAIVesselModule sourceMod = source.GetComponent<ScienceAIVesselModule>();
-            ScienceAIVesselModule targetMod = target.GetComponent<ScienceAIVesselModule>();
-            sourceMod.active = false;
-            targetMod.active = false;
-            sourceMod.SaveToVessel();
-            targetMod.SaveToVessel();
-        }
-
-
-        private void OnUndockComplete(Part data)
-        {
-            ScienceAIVesselModule mod = data.vessel.GetComponent<ScienceAIVesselModule>();
-            mod.active = false;
-            mod.SaveToVessel();
-        }
-
-        private void OnUndock(Part data)
-        {
-            ScienceAIVesselModule mod = data.vessel.GetComponent<ScienceAIVesselModule>();
-            mod.active = false;
-            mod.SaveToVessel();
-        }
-
-        public void FixedUpdate()
-        {
-            if (HighLogic.LoadedSceneIsEditor)
-                return;
-
-            float RnDLevel = 0;
-            float ACLevel = 0;
-
-            if (LastRnDLevel < 0.5)
-                RnDLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.ResearchAndDevelopment);
-            else
-                RnDLevel = LastRnDLevel;
-
-            if (LastACLevel < 0.5)
-                ACLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
-            else
-                ACLevel = LastACLevel;
-
-            foreach (Vessel vessel in FlightGlobals.Vessels)
+            ScienceAIVesselModule mod = data0.vesselRef.GetComponent<ScienceAIVesselModule>();
+            if (mod.active)
             {
-                ScienceAIVesselModule vesselModule = vessel.GetComponent<ScienceAIVesselModule>();
-                if (vesselModule != null && vesselModule.active)
+                foreach(ProtoPartSnapshot part in data0.protoPartSnapshots)
                 {
-                    String currentBiome = ScienceUtil.GetExperimentBiome(vessel.mainBody, vessel.latitude, vessel.longitude);
-                    if (vesselModule.biome != currentBiome || vesselModule.situation != vessel.SituationString || RnDLevel != LastRnDLevel || ACLevel != LastACLevel)
+                    if (part.persistentId == mod.partID)
                     {
-                        vesselModule.biome = currentBiome;
-                        vesselModule.situation = vessel.SituationString;
-                        ExperimentSituations situation = ScienceUtil.GetExperimentSituation(vessel);
-
-                        foreach (ScienceAIExperiment experiment in vesselModule.modules)
+                        foreach (ProtoPartModuleSnapshot partmodule in part.modules)
                         {
-                            RunExperiments(experiment, situation, vessel, vesselModule);
+                            if (partmodule.moduleName == "ModuleScienceContainer")
+                            {
+                                ConfigNode node = partmodule.moduleValues;
+                                node.RemoveNodes("ScienceData");
+                                foreach (ScienceAIData result in mod.results)
+                                {
+                                    node.AddNode("ScienceData", result.GetConfigNode());
+                                }
+                                break;
+                            }
                         }
                     }
                 }
             }
-            LastRnDLevel = RnDLevel;
-            LastACLevel = ACLevel;
         }
 
         public void OnGUI()
         {
-            gui.ScienceAICollectorGUI.Instance.OnGUI();
-        }
-
-        private void RunExperiments(ScienceAIExperiment experiment, ExperimentSituations situation, Vessel vessel, ScienceAIVesselModule vesselModule)
-        {
-            bool noEva = false;
-            if (situation != ExperimentSituations.SrfLanded
-                && situation != ExperimentSituations.SrfSplashed
-                && situation != ExperimentSituations.InSpaceLow
-                && situation != ExperimentSituations.InSpaceHigh)
-            {
-                noEva = true;
-            }
-
-            if (ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex) < 0.5
-                && situation != ExperimentSituations.SrfLanded && situation != ExperimentSituations.SrfSplashed)
-            {
-                noEva = true;
-            }
-
-            if (experiment.experimentID == "evaReport"
-                && noEva)
-            {
-                return;
-            }
-            if (experiment.experimentID == "surfaceSample" && !(situation == ExperimentSituations.SrfLanded || situation == ExperimentSituations.SrfSplashed))
-            {
-                return;
-            }
-            if (experiment.experimentID == "surfaceSample" && ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.ResearchAndDevelopment) < 0.5)
-            {
-                return;
-            }
-            bool hasScientist = vessel.GetVesselCrew().FindAll(pcm => pcm.trait == "Scientist").Count() > 0;
-
-            if (experiment.inoperable && !noEva && hasScientist)
-            {
-                experiment.inoperable = false;
-            }
-
-            if (vesselModule.collectReusableOnly && !(experiment.rerunnable || hasScientist))
-            {
-                return;
-            }
-
-            RunExperiment(experiment, situation, vessel, vesselModule,hasScientist,noEva);
-        }
-
-        private void RunExperiment(ScienceAIExperiment experiment, ExperimentSituations situation, Vessel vessel, ScienceAIVesselModule vesselModule, bool hasScientist, bool noEva)
-        {
-            if (!experiment.inoperable)
-            {
-                String biome = String.Empty;
-                ScienceExperiment exp = ResearchAndDevelopment.GetExperiment(experiment.experimentID);
-                if (exp.BiomeIsRelevantWhile(situation))
-                {
-                    biome = vessel.landedAt != string.Empty ? vessel.landedAt : ScienceUtil.GetExperimentBiome(vessel.mainBody, vessel.latitude, vessel.longitude);
-                }
-                ScienceSubject subj = ResearchAndDevelopment.GetExperimentSubject(exp, situation, vessel.mainBody, biome, null);
-                if (((subj.scienceCap - subj.science) > 0.1 || vesselModule.collectEmpty) && vesselModule.data.Find(r => r.id == subj.id) == null)
-                {
-                    ScienceAIData result = new ScienceAIData
-                    {
-                        amount = exp.baseValue * exp.dataScale,
-                        xmitValue = experiment.xmitDataScalar,
-                        xmitBonus = 0f,
-                        id = subj.id,
-                        dataName = subj.title
-                    };
-                    if (vesselModule.AddScienceResult(result))
-                    {
-                        if (!experiment.rerunnable && (!hasScientist || noEva))
-                        {
-                            experiment.inoperable = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        /*private void OnVesselStandardModification(Vessel data)
-        {
-            if (this != null)
-            {
-                ScienceAIVesselModule mod = data.GetComponent<ScienceAIVesselModule>();
-                if (mod != null && mod.active)
-                {
-                    mod.active = false;
-                    mod.SaveToVessel();
-                }
-            }
-        }*/
-
-        /*private void OnVesselWasModified(Vessel data)
-        {
-            ScienceAIVesselModule mod = data.GetComponent<ScienceAIVesselModule>();
-            mod.LoadFromVessel();
-            mod.SaveToVessel();
-            mod.biome = String.Empty;
-            mod.situation = String.Empty;
+            ModWindow.Instance.OnGUI();
         }
 
         private void OnVesselDocking(uint data0, uint data1)
         {
             ScienceAIVesselModule source = FlightGlobals.Vessels.Find(v => v.persistentId == data0).GetComponent<ScienceAIVesselModule>();
             ScienceAIVesselModule target = FlightGlobals.Vessels.Find(v => v.persistentId == data1).GetComponent<ScienceAIVesselModule>();
-            source.active = false;
-            target.active = false;
-            source.SaveToVessel();
-            target.SaveToVessel();
+            source.Deactivate();
+            target.Deactivate();
         }
 
-        private void OnDockingComplete(GameEvents.FromToAction<Part, Part> data)
+        private void OnUndockComplete(Part data)
         {
-            ScienceAIVesselModule source = data.from.vessel.GetComponent<ScienceAIVesselModule>();
-            source.LoadFromVessel();
-            source.SaveToVessel();
-            source.biome = String.Empty;
-            source.situation = String.Empty;
+            data.vessel.GetComponent<ScienceAIVesselModule>().Deactivate();
         }
 
-        private void OnPartUndock(Part data)
+        private void OnUndock(Part data)
         {
-            ScienceAIVesselModule mod = data.vessel.GetComponent<ScienceAIVesselModule>();
-            mod.SaveToVessel();
-            mod.biome = String.Empty;
-            mod.situation = String.Empty;
+            data.vessel.GetComponent<ScienceAIVesselModule>().Deactivate();
         }
 
-        private void OnVesselIsUndocking(Vessel origin, Vessel created)
+        public void FixedUpdate()
         {
-            origin.GetComponent<ScienceAIVesselModule>().LoadFromVessel();
-            origin.GetComponent<ScienceAIVesselModule>().SaveToVessel();
+            foreach(Vessel v in FlightGlobals.Vessels)
+            {
+                ScienceAIVesselModule mod = v.GetComponent<ScienceAIVesselModule>();
+                if (mod.active)
+                {
+                    String biome = ScienceUtil.GetExperimentBiome(v.mainBody, v.latitude, v.longitude);
+                    ExperimentSituations situation = ScienceUtil.GetExperimentSituation(v);
+                    foreach(ScienceAIExperiment experiment in mod.experiments)
+                    {
+                        if (ValidateExperiment(experiment, situation, mod, v))
+                        {
+                            RunExperiment(experiment, situation, mod, v, biome);
+                        }
+                    }
+                }
+            }
+        }
 
-            created.GetComponent<ScienceAIVesselModule>().LoadFromVessel();
-            created.GetComponent<ScienceAIVesselModule>().SaveToVessel();
-        }*/
+        private bool ValidateExperiment(ScienceAIExperiment experiment, ExperimentSituations situation, ScienceAIVesselModule mod, Vessel v)
+        {
+            float ACLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
+            float RnDLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.ResearchAndDevelopment);
+
+            if (experiment.rerunnable == false && mod.reusableOnly)
+                return false;
+
+            bool hasCrew = v.GetVesselCrew().Count() > 0;
+            bool hasScientist = v.GetVesselCrew().FindAll(pcm => pcm.trait == "Scientist").Count() > 0;
+            bool evaPossible = false;
+            double altitude = (v.GetWorldPos3D() - v.mainBody.position).magnitude - v.mainBody.Radius;
+            if (hasCrew)
+            {
+                if (!v.mainBody.atmosphere && ACLevel >= 0.5)
+                {
+                    evaPossible = true;
+                }
+                else if (altitude > v.mainBody.atmosphereDepth && ACLevel >= 0.5)
+                {
+                    evaPossible = true;
+                }
+                else if (situation == ExperimentSituations.SrfLanded || situation == ExperimentSituations.SrfSplashed)
+                {
+                    evaPossible = true;
+                }
+            }
+
+            if (experiment.experimentID == "evaReport")
+            {
+                if (!evaPossible)
+                    return false;
+            }
+
+            if(experiment.experimentID == "surfaceSample")
+            {
+                if (situation != ExperimentSituations.SrfLanded && situation != ExperimentSituations.SrfSplashed)
+                    return false;
+
+                if (RnDLevel < 0.5)
+                    return false;
+            }
+
+            if (experiment.inoperable == true && hasScientist && evaPossible)
+            {
+                experiment.inoperable = false;
+            }
+
+            if (experiment.inoperable)
+                return false;
+
+            return true;
+        }
+
+        private void RunExperiment(ScienceAIExperiment experiment, ExperimentSituations situation, ScienceAIVesselModule mod, Vessel v, String biome)
+        {
+            String currentBiome = String.Empty;
+            ScienceExperiment exp = ResearchAndDevelopment.GetExperiment(experiment.experimentID);
+            if (exp.BiomeIsRelevantWhile(situation))
+            {
+                currentBiome = v.landedAt != string.Empty ? v.landedAt : biome;
+            }
+            ScienceSubject subj = ResearchAndDevelopment.GetExperimentSubject(exp, situation, v.mainBody, currentBiome, null);
+            if (((subj.scienceCap - subj.science) > 0.1 || mod.collectEmpty) && mod.results.Find(r => r.subjectID == subj.id) == null)
+            {
+                ScienceAIData result = new ScienceAIData(exp.baseValue * exp.dataScale, experiment.xmitDataScalar, 0f, subj.id, subj.title);
+                mod.results.Add(result);
+
+                if (experiment.rerunnable == false)
+                {
+                    experiment.inoperable = true;
+                }
+            }
+        }
     }
 }
