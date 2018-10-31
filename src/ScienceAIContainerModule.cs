@@ -32,14 +32,26 @@ namespace PersistentScienceCollectorAI
 
         internal void OnAutoCollectPropertyChanged(BaseField field, System.Object obj)
         {
+            ScienceAIVesselModule mod = vessel.GetComponent<ScienceAIVesselModule>();
+            mod.collectEmpty = IsCollectEmpty;
+            mod.reusableOnly = IsReusableOnly;
         }
 
         internal void OnAutoCollectChanged(BaseField field, System.Object obj)
         {
+            ScienceAIVesselModule mod = vessel.GetComponent<ScienceAIVesselModule>();
+            ModuleScienceContainer container = part.FindModuleImplementing<ModuleScienceContainer>();
             if (IsAutoCollect)
-                vessel.GetComponent<ScienceAIVesselModule>().Activate();
+            {
+                container.CollectAllEvent();
+                mod.collectEmpty = IsCollectEmpty;
+                mod.reusableOnly = IsReusableOnly;
+                mod.Activate();
+            }
             else
-                vessel.GetComponent<ScienceAIVesselModule>().Disable();
+            {
+                mod.Deactivate();
+            }
         }
     }
 }
